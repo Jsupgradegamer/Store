@@ -2,116 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Phone OTP + Firestore</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body{font-family:system-ui,Arial,sans-serif;max-width:520px;margin:40px auto;padding:0 16px}
-    input,button{padding:10px;border:1px solid #ccc;border-radius:8px;font-size:16px}
-    input{width:100%;margin:6px 0 14px}
-    button{cursor:pointer}
-    .row{display:flex;gap:10px}
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Firebase OTP Auth with Save</title>
 </head>
 <body>
-  <h2>Phone OTP Signup</h2>
+  <h2>Phone Number Authentication</h2>
 
-  <label>Full Name</label>
-  <input id="fullName" type="text" placeholder="e.g. Harshit Kumar" />
-
-  <label>Phone Number (with country code)</label>
-  <input id="phone" type="tel" placeholder="+91XXXXXXXXXX" />
-
+  <input type="text" id="name" placeholder="Enter Name" /><br><br>
+  <input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX" /><br><br>
+  
   <div id="recaptcha-container"></div>
+  <button id="sendOtp">Send OTP</button>
 
-  <div class="row">
-    <button id="sendOtpBtn">Send OTP</button>
-  </div>
+  <br><br>
 
-  <div id="otpArea" style="display:none; margin-top:16px;">
-    <label>Enter OTP</label>
-    <input id="otp" type="text" placeholder="6-digit code" />
-    <div class="row">
-      <button id="verifyOtpBtn">Verify & Save</button>
-    </div>
-  </div>
+  <input type="text" id="otp" placeholder="Enter OTP" />
+  <button id="verifyOtp">Verify OTP</button>
 
-  <p id="status"></p>
+  <p id="result"></p>
 
+  <!-- Firebase SDKs -->
   <script type="module">
-    // ===== 1) Firebase SDKs (v10 modular) =====
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    // ===== 2) Your Firebase config (replace with your own from Firebase Console) =====
+    // Your Firebase configuration
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyBzqaQCtUlt162eVH0tITgqJctmcY6wLm8",
+      authDomain: "my-js-c216c.firebaseapp.com",
+      projectId: "my-js-c216c",
+      storageBucket: "my-js-c216c.firebasestorage.app",
+      messagingSenderId: "508117014838",
+      appId: "1:508117014838:web:0c2baac94e5faa19dcfb97",
+      measurementId: "G-994CYXBLE2"
     };
 
-    // ===== 3) Init =====
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Recaptcha (visible). Domain must be authorized in Firebase Auth settings.
-    const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "normal"
+    // reCAPTCHA
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", { size: "invisible" });
+
+    let confirmationResult;
+
+    // Send OTP
+    document.getElementById("sendOtp").addEventListener("click", async () => {
+      const phoneNumber = document.getElementById("phoneNumber").value;
+      try {
+        confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+        document.getElementById("result").innerText = "OTP sent!";
+      } catch (error) {
+        document.getElementById("result").innerText = "Error: " + error.message;
+      }
     });
 
-    const $ = (id) => document.getElementById(id);
-    let confirmationResultGlobal = null;
+    // Verify OTP
+    document.getElementById("verifyOtp").addEventListener("click", async () => {
+      const otp = document.getElementById("otp").value;
+      const name = document.getElementById("name").value;
+      const phoneNumber = document.getElementById("phoneNumber").value;
 
-    $("sendOtpBtn").onclick = async () => {
-      const phone = $("phone").value.trim();
-      const name = $("fullName").value.trim();
-      if (!name) return setStatus("Please enter your full name.");
-      if (!/^\+\d{6,15}$/.test(phone)) return setStatus("Please enter valid phone (with country code).");
-
-      setStatus("Sending OTP...");
       try {
-        confirmationResultGlobal = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-        $("otpArea").style.display = "block";
-        setStatus("OTP sent. Please check your phone.");
-      } catch (err) {
-        console.error(err);
-        setStatus("Failed to send OTP: " + (err.message || err));
-      }
-    };
+        const result = await confirmationResult.confirm(otp);
+        document.getElementById("result").innerText = "Phone Verified: " + result.user.phoneNumber;
 
-    $("verifyOtpBtn").onclick = async () => {
-      const code = $("otp").value.trim();
-      const name = $("fullName").value.trim();
-      const phone = $("phone").value.trim();
-      if (!confirmationResultGlobal) return setStatus("Please send OTP first.");
-      if (!code) return setStatus("Enter the OTP.");
-
-      setStatus("Verifying...");
-      try {
-        const result = await confirmationResultGlobal.confirm(code); // user signed in
-        const user = result.user;
-
-        // Save to Firestore (doc id = uid)
-        await setDoc(doc(db, "users", user.uid), {
+        // Save data in Firestore
+        await addDoc(collection(db, "users"), {
           name: name,
-          phone: phone,
-          createdAt: serverTimestamp()
+          phone: phoneNumber,
+          verifiedAt: new Date()
         });
 
-        setStatus("Verified ✅ User saved to database.");
-        // (optional) sign out so user isn't kept signed-in:
-        await signOut(auth);
-      } catch (err) {
-        console.error(err);
-        setStatus("Verification failed: " + (err.message || err));
+        document.getElementById("result").innerText += " | User saved in DB ✅";
+      } catch (error) {
+        document.getElementById("result").innerText = "Error: " + error.message;
       }
-    };
-
-    function setStatus(msg){ $("status").textContent = msg; }
+    });
   </script>
 </body>
-  </html>
+</html>
