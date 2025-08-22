@@ -1,34 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Firebase OTP Auth with Save</title>
+  <meta charset="UTF-8">
+  <title>Phone Auth with Firestore</title>
 </head>
 <body>
-  <h2>Phone Number Authentication</h2>
+  <h2>Phone Authentication</h2>
 
   <input type="text" id="name" placeholder="Enter Name" /><br><br>
-  <input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX" /><br><br>
-  
-  <div id="recaptcha-container"></div>
-  <button id="sendOtp">Send OTP</button>
+  <input type="text" id="phone" placeholder="+91XXXXXXXXXX" /><br><br>
+  <div id="recaptcha-container"></div><br>
+  <button onclick="sendOTP()">Send OTP</button><br><br>
 
-  <br><br>
+  <input type="text" id="otp" placeholder="Enter OTP" /><br><br>
+  <button onclick="verifyOTP()">Verify OTP</button>
 
-  <input type="text" id="otp" placeholder="Enter OTP" />
-  <button id="verifyOtp">Verify OTP</button>
+  <p id="status"></p>
 
-  <p id="result"></p>
-
-  <!-- Firebase SDKs -->
   <script type="module">
+    // Firebase SDKs import
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
     import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    // Your Firebase configuration
+    // Your Firebase config (apna wala hi use karna)
     const firebaseConfig = {
       apiKey: "AIzaSyBzqaQCtUlt162eVH0tITgqJctmcY6wLm8",
       authDomain: "my-js-c216c.firebaseapp.com",
@@ -45,44 +41,54 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // reCAPTCHA
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", { size: "invisible" });
+    // reCAPTCHA Setup
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "normal",
+      callback: (response) => {
+        console.log("reCAPTCHA verified");
+      }
+    });
 
     let confirmationResult;
 
     // Send OTP
-    document.getElementById("sendOtp").addEventListener("click", async () => {
-      const phoneNumber = document.getElementById("phoneNumber").value;
-      try {
-        confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
-        document.getElementById("result").innerText = "OTP sent!";
-      } catch (error) {
-        document.getElementById("result").innerText = "Error: " + error.message;
-      }
-    });
+    window.sendOTP = function () {
+      const phone = document.getElementById("phone").value;
+      signInWithPhoneNumber(auth, phone, window.recaptchaVerifier)
+        .then((result) => {
+          confirmationResult = result;
+          document.getElementById("status").innerText = "OTP sent successfully!";
+        }).catch((error) => {
+          document.getElementById("status").innerText = error.message;
+          console.error(error);
+        });
+    };
 
     // Verify OTP
-    document.getElementById("verifyOtp").addEventListener("click", async () => {
-      const otp = document.getElementById("otp").value;
+    window.verifyOTP = function () {
+      const code = document.getElementById("otp").value;
       const name = document.getElementById("name").value;
-      const phoneNumber = document.getElementById("phoneNumber").value;
+      const phone = document.getElementById("phone").value;
 
-      try {
-        const result = await confirmationResult.confirm(otp);
-        document.getElementById("result").innerText = "Phone Verified: " + result.user.phoneNumber;
+      confirmationResult.confirm(code).then(async (result) => {
+        document.getElementById("status").innerText = "Phone verified ✅";
 
         // Save data in Firestore
-        await addDoc(collection(db, "users"), {
-          name: name,
-          phone: phoneNumber,
-          verifiedAt: new Date()
-        });
-
-        document.getElementById("result").innerText += " | User saved in DB ✅";
-      } catch (error) {
-        document.getElementById("result").innerText = "Error: " + error.message;
-      }
-    });
+        try {
+          await addDoc(collection(db, "users"), {
+            name: name,
+            phone: phone,
+            createdAt: new Date()
+          });
+          document.getElementById("status").innerText += " | Data saved in Firestore 🎉";
+        } catch (e) {
+          console.error("Error saving data: ", e);
+        }
+      }).catch((error) => {
+        document.getElementById("status").innerText = "Invalid OTP ❌";
+        console.error(error);
+      });
+    };
   </script>
 </body>
-</html>
+  </html>
