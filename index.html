@@ -3,85 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Registration</title>
+  <title>Kirana Store Registration</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f6f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+      text-align: center;
+      background: #f8f9fa;
     }
     .container {
-      width: 100%;
+      width: 90%;
       max-width: 400px;
-      background: #fff;
+      margin: 50px auto;
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      text-align: center;
-      display: none;
+      background: white;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
     }
-    .container.active {
-      display: block;
-    }
-    h2 {
-      margin-bottom: 20px;
-    }
+    h2 { margin-bottom: 20px; }
     input, button {
-      width: 100%;
+      width: 90%;
       padding: 10px;
-      margin: 8px 0;
-      border-radius: 6px;
+      margin: 10px 0;
       border: 1px solid #ccc;
-      font-size: 14px;
+      border-radius: 8px;
     }
     button {
       background: #007bff;
-      color: #fff;
-      border: none;
-      cursor: pointer;
+      color: white;
       font-weight: bold;
+      cursor: pointer;
     }
-    button:hover {
-      background: #0056b3;
-    }
+    button:hover { background: #0056b3; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
 
   <!-- Welcome Div -->
-  <div id="welcomeDiv" class="container active">
+  <div id="welcomeDiv" class="container">
     <h2>Welcome</h2>
-    <button onclick="signInAlert()">Sign In</button>
+    <button onclick="showSignIn()">Sign In</button>
     <button onclick="showRegister()">Sign Up</button>
   </div>
 
-  <!-- Register Form Div -->
-  <div id="registerDiv" class="container">
-    <h2>User Registration</h2>
+  <!-- Registration Form Div -->
+  <div id="registerDiv" class="container hidden">
+    <h2>Register</h2>
     <input type="text" id="name" placeholder="Enter Name" required>
-    <input type="tel" id="phone" placeholder="Enter Phone Number" required>
+    <input type="text" id="phone" placeholder="Enter Phone Number" required>
     <input type="email" id="email" placeholder="Enter Gmail" required>
     <input type="text" id="shopName" placeholder="Enter Shop Name" required>
-    <input type="text" id="address" placeholder="Enter Shop Address" required>
+    <input type="text" id="address" placeholder="Enter Address" required>
     <input type="file" id="shopPhoto" accept="image/*" required>
     <button onclick="registerUser()">Register</button>
   </div>
 
   <!-- Success Div -->
-  <div id="successDiv" class="container">
-    <h2>Your application has been submitted</h2>
-    <p>Please wait for verification call</p>
+  <div id="successDiv" class="container hidden">
+    <h2>Your application submitted!</h2>
+    <p>Please verify your Gmail & wait for verification call.</p>
     <button onclick="goBack()">Back</button>
   </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js"></script>
 
   <script>
     // Firebase Config
@@ -95,77 +81,77 @@
       measurementId: "G-994CYXBLE2"
     };
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
+    // Init Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    // Functions
-    function signInAlert() {
-      alert("This page allows only Registration");
+    // Show/Hide Divs
+    function showSignIn() {
+      alert("Login is not allowed, only Registration!");
     }
-
     function showRegister() {
-      document.getElementById("welcomeDiv").classList.remove("active");
-      document.getElementById("registerDiv").classList.add("active");
+      document.getElementById("welcomeDiv").classList.add("hidden");
+      document.getElementById("registerDiv").classList.remove("hidden");
+    }
+    function goBack() {
+      document.getElementById("successDiv").classList.add("hidden");
+      document.getElementById("welcomeDiv").classList.remove("hidden");
     }
 
+    // Register User
     async function registerUser() {
-      const name = document.getElementById("name").value;
-      const phone = document.getElementById("phone").value;
-      const email = document.getElementById("email").value;
-      const shopName = document.getElementById("shopName").value;
-      const address = document.getElementById("address").value;
-      const file = document.getElementById("shopPhoto").files[0];
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const shopName = document.getElementById("shopName").value.trim();
+      const address = document.getElementById("address").value.trim();
+      const shopPhoto = document.getElementById("shopPhoto").files[0];
 
-      if (!name || !phone || !email || !shopName || !address || !file) {
-        alert("Please fill all fields");
-        return;
-      }
-
-      // Check duplicate (phone or email)
-      const snapshot = await db.collection("users")
-        .where("email", "==", email)
-        .get();
-      if (!snapshot.empty) {
-        alert("This Email is already registered!");
-        return;
-      }
-
-      const phoneSnap = await db.collection("users")
-        .where("phone", "==", phone)
-        .get();
-      if (!phoneSnap.empty) {
-        alert("This Phone is already registered!");
+      if (!name || !phone || !email || !shopName || !address || !shopPhoto) {
+        alert("Please fill all fields!");
         return;
       }
 
       try {
-        // Upload photo
-        const storageRef = storage.ref("shopPhotos/" + Date.now() + "_" + file.name);
-        await storageRef.put(file);
+        // Check if email/phone already exists
+        const snapshot = await db.collection("users").where("email", "==", email).get();
+        if (!snapshot.empty) {
+          alert("This Gmail is already registered!");
+          return;
+        }
+        const snapshot2 = await db.collection("users").where("phone", "==", phone).get();
+        if (!snapshot2.empty) {
+          alert("This Phone Number is already registered!");
+          return;
+        }
+
+        // Create Firebase Auth User with random password
+        const randomPass = Math.random().toString(36).slice(-8);
+        const userCred = await auth.createUserWithEmailAndPassword(email, randomPass);
+
+        // Send Gmail verification
+        await userCred.user.sendEmailVerification();
+
+        // Upload Photo to Firebase Storage
+        const storageRef = storage.ref("shop_photos/" + userCred.user.uid + ".jpg");
+        await storageRef.put(shopPhoto);
         const photoURL = await storageRef.getDownloadURL();
 
-        // Save data
-        await db.collection("users").add({
-          name, phone, email, shopName, address, photoURL, createdAt: new Date()
+        // Save User Data to Firestore
+        await db.collection("users").doc(userCred.user.uid).set({
+          name, phone, email, shopName, address, photoURL, status: "pending"
         });
 
-        // Show success div
-        document.getElementById("registerDiv").classList.remove("active");
-        document.getElementById("successDiv").classList.add("active");
+        // Show Success Div
+        document.getElementById("registerDiv").classList.add("hidden");
+        document.getElementById("successDiv").classList.remove("hidden");
 
       } catch (error) {
-        console.error("Error adding user: ", error);
-        alert("Error registering user. Please try again.");
+        alert("Error: " + error.message);
       }
     }
-
-    function goBack() {
-      document.getElementById("successDiv").classList.remove("active");
-      document.getElementById("welcomeDiv").classList.add("active");
-    }
   </script>
-
 </body>
-</html>
+</html>   
