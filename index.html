@@ -4,81 +4,73 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Registration</title>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
-
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background: #f2f2f2;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
     .container {
-      background: #fff;
-      padding: 20px 30px;
+      background: white;
+      padding: 25px;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
       width: 350px;
       text-align: center;
     }
-    h2 {
-      margin-bottom: 15px;
-      color: #333;
-    }
     input, button {
-      width: 100%;
+      width: 90%;
       padding: 10px;
-      margin: 8px 0;
+      margin: 10px 0;
+      border-radius: 6px;
       border: 1px solid #ccc;
-      border-radius: 8px;
+      outline: none;
     }
     button {
-      background: #007bff;
+      background: #4CAF50;
       color: white;
       border: none;
-      font-weight: bold;
       cursor: pointer;
+      font-weight: bold;
     }
     button:hover {
-      background: #0056b3;
+      background: #45a049;
     }
-    .google-btn {
-      background: #db4437;
-    }
-    .google-btn:hover {
-      background: #a33226;
+    #successDiv {
+      display: none;
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: green;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Register</h2>
+    <h2>User Registration</h2>
     <form id="registerForm">
       <input type="text" id="name" placeholder="Enter Name" required>
       <input type="text" id="phone" placeholder="Enter Phone Number" required>
       <input type="email" id="email" placeholder="Enter Gmail" required>
-      <input type="text" id="shop" placeholder="Enter Shop Name" required>
-      <input type="text" id="address" placeholder="Enter Address" required>
-      <input type="file" id="photo" accept="image/*" required> <!-- ✅ shop photo -->
-      <button type="submit">Sign Up</button>
+      <input type="text" id="shopName" placeholder="Enter Shop Name" required>
+      <input type="text" id="address" placeholder="Enter Shop Address" required>
+      <input type="file" id="shopPhoto" accept="image/*" required>
+      <button type="submit">Register</button>
     </form>
 
-    <p>or</p>
-    <button class="google-btn" id="googleLoginBtn">Login with Google</button>
+    <button id="googleLogin">Verify with Google</button>
 
-    <div id="waitingDiv" style="display:none; margin-top:20px;">
-      <h3>Your application is sent. Please wait for verification call.</h3>
-    </div>
+    <div id="successDiv">✅ Your application is sent! Wait for verification call.</div>
   </div>
 
-  <script type="module">
+  <script>
     // ✅ Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBzqaQCtUlt162eVH0tITgqJctmcY6wLm8",
@@ -89,12 +81,22 @@
       appId: "1:508117014838:web:0c2baac94e5faa19dcfb97",
       measurementId: "G-994CYXBLE2"
     };
+    firebase.initializeApp(firebaseConfig);
 
-    // ✅ Init Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
+    const auth = firebase.auth();
     const storage = firebase.storage();
+
+    // ✅ Gmail Verification with Google Login
+    document.getElementById("googleLogin").addEventListener("click", () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).then(result => {
+        alert("✅ Gmail verified: " + result.user.email);
+        document.getElementById("email").value = result.user.email;
+      }).catch(error => {
+        alert("❌ Error: " + error.message);
+      });
+    });
 
     // ✅ Register Form Submit
     document.getElementById("registerForm").addEventListener("submit", async (e) => {
@@ -103,52 +105,43 @@
       const name = document.getElementById("name").value;
       const phone = document.getElementById("phone").value;
       const email = document.getElementById("email").value;
-      const shop = document.getElementById("shop").value;
+      const shopName = document.getElementById("shopName").value;
       const address = document.getElementById("address").value;
-      const photoFile = document.getElementById("photo").files[0];
+      const file = document.getElementById("shopPhoto").files[0];
 
-      if (!photoFile) {
-        alert("Please upload shop photo!");
+      // ❌ Duplicate Check (Phone + Email)
+      const snapshot = await db.collection("users")
+        .where("phone", "==", phone)
+        .get();
+      const snapshot2 = await db.collection("users")
+        .where("email", "==", email)
+        .get();
+
+      if (!snapshot.empty || !snapshot2.empty) {
+        alert("⚠ User already registered with this Phone/Email!");
         return;
       }
 
-      try {
-        // ✅ Upload photo to Firebase Storage
-        const storageRef = storage.ref("shop_photos/" + Date.now() + "_" + photoFile.name);
-        await storageRef.put(photoFile);
-        const photoURL = await storageRef.getDownloadURL();
+      // ✅ Upload Photo
+      const storageRef = storage.ref("shop_photos/" + Date.now() + "_" + file.name);
+      await storageRef.put(file);
+      const photoURL = await storageRef.getDownloadURL();
 
-        // ✅ Save data to Firestore
-        await db.collection("users").add({
-          name,
-          phone,
-          email,
-          shop,
-          address,
-          photoURL,   // ✅ photo link
-          status: "pending"
-        });
+      // ✅ Save User Data
+      await db.collection("users").add({
+        name,
+        phone,
+        email,
+        shopName,
+        address,
+        photoURL,
+        status: "pending" // You can use this for admin approval later
+      });
 
-        document.getElementById("registerForm").style.display = "none";
-        document.getElementById("waitingDiv").style.display = "block";
-
-      } catch (error) {
-        alert("Error: " + error.message);
-      }
-    });
-
-    // ✅ Google Login Button
-    document.getElementById("googleLoginBtn").addEventListener("click", async () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      try {
-        const result = await auth.signInWithPopup(provider);
-        const user = result.user;
-
-        alert("Logged in as: " + user.email);
-      } catch (error) {
-        alert("Google Login Error: " + error.message);
-      }
+      document.getElementById("registerForm").style.display = "none";
+      document.getElementById("googleLogin").style.display = "none";
+      document.getElementById("successDiv").style.display = "block";
     });
   </script>
 </body>
-</html> 
+</html>
