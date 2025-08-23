@@ -4,48 +4,99 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Registration</title>
+
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 350px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .google-btn {
+      background: #db4437;
+    }
+    .google-btn:hover {
+      background: #a33226;
+    }
+  </style>
 </head>
 <body>
-  <h2>User Registration</h2>
-
-  <!-- Registration Form -->
-  <div id="registerDiv">
+  <div class="container">
+    <h2>Register</h2>
     <form id="registerForm">
-      <input type="text" id="name" placeholder="Enter Name" required><br><br>
-      <input type="text" id="phone" placeholder="Enter Phone Number" required><br><br>
-      <input type="email" id="email" placeholder="Enter Gmail" required><br><br>
-      <input type="text" id="shop" placeholder="Enter Shop Name" required><br><br>
-      <input type="text" id="address" placeholder="Enter Address" required><br><br>
-      <button type="submit">Register</button>
+      <input type="text" id="name" placeholder="Enter Name" required>
+      <input type="text" id="phone" placeholder="Enter Phone Number" required>
+      <input type="email" id="email" placeholder="Enter Gmail" required>
+      <input type="text" id="shop" placeholder="Enter Shop Name" required>
+      <input type="text" id="address" placeholder="Enter Address" required>
+      <input type="file" id="photo" accept="image/*" required> <!-- ✅ shop photo -->
+      <button type="submit">Sign Up</button>
     </form>
-  </div>
 
-  <!-- After Registration Message -->
-  <div id="waitingDiv" style="display:none; text-align:center; margin-top:20px;">
-    <h3>Your application is sent. Please wait for verification call.</h3>
+    <p>or</p>
+    <button class="google-btn" id="googleLoginBtn">Login with Google</button>
+
+    <div id="waitingDiv" style="display:none; margin-top:20px;">
+      <h3>Your application is sent. Please wait for verification call.</h3>
+    </div>
   </div>
 
   <script type="module">
-    // Firebase Config
+    // ✅ Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBzqaQCtUlt162eVH0tITgqJctmcY6wLm8",
       authDomain: "my-js-c216c.firebaseapp.com",
       projectId: "my-js-c216c",
-      storageBucket: "my-js-c216c.appspot.com",  // ✅ corrected
+      storageBucket: "my-js-c216c.appspot.com",
       messagingSenderId: "508117014838",
       appId: "1:508117014838:web:0c2baac94e5faa19dcfb97",
       measurementId: "G-994CYXBLE2"
     };
 
-    // Init Firebase
+    // ✅ Init Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
-    // Registration
+    // ✅ Register Form Submit
     document.getElementById("registerForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -54,45 +105,50 @@
       const email = document.getElementById("email").value;
       const shop = document.getElementById("shop").value;
       const address = document.getElementById("address").value;
+      const photoFile = document.getElementById("photo").files[0];
+
+      if (!photoFile) {
+        alert("Please upload shop photo!");
+        return;
+      }
 
       try {
-        // Check if user already exists (by phone or email)
-        const querySnapshot = await db.collection("users")
-          .where("email", "==", email)
-          .get();
+        // ✅ Upload photo to Firebase Storage
+        const storageRef = storage.ref("shop_photos/" + Date.now() + "_" + photoFile.name);
+        await storageRef.put(photoFile);
+        const photoURL = await storageRef.getDownloadURL();
 
-        if (!querySnapshot.empty) {
-          alert("This email is already registered!");
-          return;
-        }
-
-        const phoneSnapshot = await db.collection("users")
-          .where("phone", "==", phone)
-          .get();
-
-        if (!phoneSnapshot.empty) {
-          alert("This phone number is already registered!");
-          return;
-        }
-
-        // Save data in Firestore
+        // ✅ Save data to Firestore
         await db.collection("users").add({
           name,
           phone,
           email,
           shop,
           address,
-          status: "pending" // for verification
+          photoURL,   // ✅ photo link
+          status: "pending"
         });
 
-        // Hide form, show waiting message
-        document.getElementById("registerDiv").style.display = "none";
+        document.getElementById("registerForm").style.display = "none";
         document.getElementById("waitingDiv").style.display = "block";
 
       } catch (error) {
         alert("Error: " + error.message);
       }
     });
+
+    // ✅ Google Login Button
+    document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+
+        alert("Logged in as: " + user.email);
+      } catch (error) {
+        alert("Google Login Error: " + error.message);
+      }
+    });
   </script>
 </body>
-</html>
+</html> 
