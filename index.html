@@ -4,187 +4,95 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Registration</title>
-
-  <!-- ✅ Firebase v8 SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #2ecc71, #3498db, #e67e22, #7f8c8d);
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: rgba(0,0,0,0.6);
-      padding: 30px;
-      border-radius: 12px;
-      width: 350px;
-      text-align: center;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-    }
-    input, button {
-      width: 90%;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 6px;
-      border: none;
-    }
-    button {
-      background: #27ae60;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      background: #219150;
-    }
-    .hidden { display: none; }
-    .messageBox {
-      font-size: 18px;
-      font-weight: bold;
-      color: #f1c40f;
-    }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 </head>
 <body>
-  <div class="container">
+  <h2>User Registration</h2>
 
-    <!-- Landing Page -->
-    <div id="landingPage">
-      <h2>Welcome</h2>
-      <button onclick="showLogin()">Sign In</button>
-      <button onclick="showSignup()">Sign Up</button>
-    </div>
-
-    <!-- Signup Form -->
-    <div id="signupForm" class="hidden">
-      <h2>Register</h2>
-      <input type="text" id="name" placeholder="Full Name" required>
-      <input type="number" id="phone" placeholder="Phone Number" required>
-      <input type="email" id="email" placeholder="Gmail" required>
-      <input type="text" id="shop" placeholder="Shop Name" required>
-      <input type="text" id="address" placeholder="Shop Address" required>
-      <input type="password" id="password" placeholder="Password" required>
-      <button onclick="registerUser()">Register</button>
-    </div>
-
-    <!-- Login Form -->
-    <div id="loginForm" class="hidden">
-      <h2>Login</h2>
-      <input type="email" id="loginEmail" placeholder="Enter Gmail" required>
-      <input type="password" id="loginPassword" placeholder="Enter Password" required>
-      <button onclick="loginUser()">Login</button>
-    </div>
-
-    <!-- After Registration Message -->
-    <div id="afterRegister" class="hidden messageBox">
-      Your application is sent. Wait for verification call.
-    </div>
+  <!-- Registration Form -->
+  <div id="registerDiv">
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Enter Name" required><br><br>
+      <input type="text" id="phone" placeholder="Enter Phone Number" required><br><br>
+      <input type="email" id="email" placeholder="Enter Gmail" required><br><br>
+      <input type="text" id="shop" placeholder="Enter Shop Name" required><br><br>
+      <input type="text" id="address" placeholder="Enter Address" required><br><br>
+      <button type="submit">Register</button>
+    </form>
   </div>
 
-<script>
-  // ✅ Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyCIoNMYwb5NshyTxRQbLe0o5YAcQtrW1rA",
-    authDomain: "fir-a91fe.firebaseapp.com",
-    projectId: "fir-a91fe",
-    storageBucket: "fir-a91fe.appspot.com",
-    messagingSenderId: "757848166947",
-    appId: "1:757848166947:web:9f96c08ec62d00d15db0ff",
-    measurementId: "G-7EWT71DCLP"
-  };
+  <!-- After Registration Message -->
+  <div id="waitingDiv" style="display:none; text-align:center; margin-top:20px;">
+    <h3>Your application is sent. Please wait for verification call.</h3>
+  </div>
 
-  // ✅ Firebase Init
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+  <script type="module">
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzqaQCtUlt162eVH0tITgqJctmcY6wLm8",
+      authDomain: "my-js-c216c.firebaseapp.com",
+      projectId: "my-js-c216c",
+      storageBucket: "my-js-c216c.appspot.com",  // ✅ corrected
+      messagingSenderId: "508117014838",
+      appId: "1:508117014838:web:0c2baac94e5faa19dcfb97",
+      measurementId: "G-994CYXBLE2"
+    };
 
-  // Show/hide forms
-  function showSignup(){
-    document.getElementById("landingPage").classList.add("hidden");
-    document.getElementById("signupForm").classList.remove("hidden");
-  }
-  function showLogin(){
-    document.getElementById("landingPage").classList.add("hidden");
-    document.getElementById("loginForm").classList.remove("hidden");
-  }
+    // Init Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  // Register User
-  async function registerUser(){
-    const name = document.getElementById("name").value;
-    const phone = document.getElementById("phone").value;
-    const email = document.getElementById("email").value;
-    const shop = document.getElementById("shop").value;
-    const address = document.getElementById("address").value;
-    const password = document.getElementById("password").value;
+    // Registration
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    if(!name || !phone || !email || !shop || !address || !password){
-      alert("Please fill all fields!");
-      return;
-    }
+      const name = document.getElementById("name").value;
+      const phone = document.getElementById("phone").value;
+      const email = document.getElementById("email").value;
+      const shop = document.getElementById("shop").value;
+      const address = document.getElementById("address").value;
 
-    try {
-      // ✅ Duplicate Check (phone or email)
-      const snapshot = await db.collection("users")
-        .where("phone", "==", phone)
-        .get();
-      if(!snapshot.empty){
-        alert("Phone number already registered!");
-        return;
+      try {
+        // Check if user already exists (by phone or email)
+        const querySnapshot = await db.collection("users")
+          .where("email", "==", email)
+          .get();
+
+        if (!querySnapshot.empty) {
+          alert("This email is already registered!");
+          return;
+        }
+
+        const phoneSnapshot = await db.collection("users")
+          .where("phone", "==", phone)
+          .get();
+
+        if (!phoneSnapshot.empty) {
+          alert("This phone number is already registered!");
+          return;
+        }
+
+        // Save data in Firestore
+        await db.collection("users").add({
+          name,
+          phone,
+          email,
+          shop,
+          address,
+          status: "pending" // for verification
+        });
+
+        // Hide form, show waiting message
+        document.getElementById("registerDiv").style.display = "none";
+        document.getElementById("waitingDiv").style.display = "block";
+
+      } catch (error) {
+        alert("Error: " + error.message);
       }
-
-      const snapshot2 = await db.collection("users")
-        .where("email", "==", email)
-        .get();
-      if(!snapshot2.empty){
-        alert("Email already registered!");
-        return;
-      }
-
-      // ✅ Create Auth Account
-      let userCred = await auth.createUserWithEmailAndPassword(email, password);
-
-      // ✅ Send Email Verification
-      await userCred.user.sendEmailVerification();
-
-      // ✅ Save in Firestore
-      await db.collection("users").doc(userCred.user.uid).set({
-        name, phone, email, shop, address, verified: false
-      });
-
-      // ✅ Hide form, show message
-      document.getElementById("signupForm").classList.add("hidden");
-      document.getElementById("afterRegister").classList.remove("hidden");
-
-    } catch (err) {
-      alert(err.message);
-    }
-  }
-
-  // Login User
-  async function loginUser(){
-    const email = document.getElementById("loginEmail").value;
-    const password = document.getElementById("loginPassword").value;
-
-    try{
-      let userCred = await auth.signInWithEmailAndPassword(email, password);
-      if(!userCred.user.emailVerified){
-        alert("Please verify your email before login!");
-        return;
-      }
-      alert("Login Successful!");
-    }catch(err){
-      alert(err.message);
-    }
-  }
-</script>
+    });
+  </script>
 </body>
 </html>
