@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Registration</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
+
+  <!-- ✅ Firebase v8 SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -43,44 +46,52 @@
     button:hover {
       background: #219150;
     }
-    .toggle-link {
+    .hidden { display: none; }
+    .messageBox {
+      font-size: 18px;
+      font-weight: bold;
       color: #f1c40f;
-      cursor: pointer;
-      display: block;
-      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2 id="formTitle">Login</h2>
 
-    <!-- Google Login -->
-    <button onclick="googleLogin()">Login with Google</button>
+    <!-- Landing Page -->
+    <div id="landingPage">
+      <h2>Welcome</h2>
+      <button onclick="showLogin()">Sign In</button>
+      <button onclick="showSignup()">Sign Up</button>
+    </div>
 
     <!-- Signup Form -->
-    <div id="signupForm" style="display:none;">
+    <div id="signupForm" class="hidden">
+      <h2>Register</h2>
       <input type="text" id="name" placeholder="Full Name" required>
       <input type="number" id="phone" placeholder="Phone Number" required>
       <input type="email" id="email" placeholder="Gmail" required>
-      <input type="text" id="address" placeholder="Store Address" required>
-      <input type="file" id="photo" accept="image/*" required>
+      <input type="text" id="shop" placeholder="Shop Name" required>
+      <input type="text" id="address" placeholder="Shop Address" required>
       <input type="password" id="password" placeholder="Password" required>
       <button onclick="registerUser()">Register</button>
     </div>
 
     <!-- Login Form -->
-    <div id="loginForm">
+    <div id="loginForm" class="hidden">
+      <h2>Login</h2>
       <input type="email" id="loginEmail" placeholder="Enter Gmail" required>
       <input type="password" id="loginPassword" placeholder="Enter Password" required>
       <button onclick="loginUser()">Login</button>
     </div>
 
-    <span class="toggle-link" onclick="toggleForm()">Don’t have an account? Sign Up</span>
+    <!-- After Registration Message -->
+    <div id="afterRegister" class="hidden messageBox">
+      Your application is sent. Wait for verification call.
+    </div>
   </div>
 
 <script>
-  // ✅ Firebase Config (tumhare code ka)
+  // ✅ Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyCIoNMYwb5NshyTxRQbLe0o5YAcQtrW1rA",
     authDomain: "fir-a91fe.firebaseapp.com",
@@ -92,33 +103,18 @@
   };
 
   // ✅ Firebase Init
-  const app = firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
-  const storage = firebase.storage();
 
-  // Toggle Login / Signup Form
-  function toggleForm(){
-    let signup = document.getElementById("signupForm");
-    let login = document.getElementById("loginForm");
-    let title = document.getElementById("formTitle");
-    if(signup.style.display === "none"){
-      signup.style.display = "block";
-      login.style.display = "none";
-      title.innerText = "Register";
-    } else {
-      signup.style.display = "none";
-      login.style.display = "block";
-      title.innerText = "Login";
-    }
+  // Show/hide forms
+  function showSignup(){
+    document.getElementById("landingPage").classList.add("hidden");
+    document.getElementById("signupForm").classList.remove("hidden");
   }
-
-  // Google Login
-  function googleLogin(){
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).then(result=>{
-      alert("Login Success: " + result.user.email);
-    }).catch(err=>alert(err.message));
+  function showLogin(){
+    document.getElementById("landingPage").classList.add("hidden");
+    document.getElementById("loginForm").classList.remove("hidden");
   }
 
   // Register User
@@ -126,31 +122,49 @@
     const name = document.getElementById("name").value;
     const phone = document.getElementById("phone").value;
     const email = document.getElementById("email").value;
+    const shop = document.getElementById("shop").value;
     const address = document.getElementById("address").value;
     const password = document.getElementById("password").value;
-    const photo = document.getElementById("photo").files[0];
 
-    try{
-      let userCred = await auth.createUserWithEmailAndPassword(email, password);
+    if(!name || !phone || !email || !shop || !address || !password){
+      alert("Please fill all fields!");
+      return;
+    }
 
-      // Gmail Verification
-      if(userCred.user.email !== email){
-        alert("Gmail verification failed!");
+    try {
+      // ✅ Duplicate Check (phone or email)
+      const snapshot = await db.collection("users")
+        .where("phone", "==", phone)
+        .get();
+      if(!snapshot.empty){
+        alert("Phone number already registered!");
         return;
       }
 
-      // Upload Photo
-      const photoRef = storage.ref("users/"+userCred.user.uid+"/profile.jpg");
-      await photoRef.put(photo);
-      const photoURL = await photoRef.getDownloadURL();
+      const snapshot2 = await db.collection("users")
+        .where("email", "==", email)
+        .get();
+      if(!snapshot2.empty){
+        alert("Email already registered!");
+        return;
+      }
 
-      // Save in Firestore
+      // ✅ Create Auth Account
+      let userCred = await auth.createUserWithEmailAndPassword(email, password);
+
+      // ✅ Send Email Verification
+      await userCred.user.sendEmailVerification();
+
+      // ✅ Save in Firestore
       await db.collection("users").doc(userCred.user.uid).set({
-        name, phone, email, address, photoURL
+        name, phone, email, shop, address, verified: false
       });
 
-      alert("User Registered Successfully!");
-    }catch(err){
+      // ✅ Hide form, show message
+      document.getElementById("signupForm").classList.add("hidden");
+      document.getElementById("afterRegister").classList.remove("hidden");
+
+    } catch (err) {
       alert(err.message);
     }
   }
@@ -161,7 +175,11 @@
     const password = document.getElementById("loginPassword").value;
 
     try{
-      await auth.signInWithEmailAndPassword(email, password);
+      let userCred = await auth.signInWithEmailAndPassword(email, password);
+      if(!userCred.user.emailVerified){
+        alert("Please verify your email before login!");
+        return;
+      }
       alert("Login Successful!");
     }catch(err){
       alert(err.message);
