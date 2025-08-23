@@ -3,119 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Registration</title>
+  <title>User Form to Google Sheet</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; }
-    .container { display: none; padding: 20px; margin: 30px auto; background: #fff; width: 300px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
-    input { width: 90%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; }
-    button { padding: 10px 20px; margin: 10px; border: none; background: #007bff; color: white; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #0056b3; }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f0f2f5;
+    }
+    form {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+      width: 300px;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
 
-  <!-- First Screen -->
-  <div id="firstDiv" class="container" style="display:block;">
-    <h2>Welcome</h2>
-    <button onclick="showRegister()">Sign Up</button>
-    <button onclick="alert('⚠️ It\'s pending, allow only registration!')">Sign In</button>
-  </div>
+<form id="userForm">
+  <h2>User Form</h2>
+  <input type="text" id="name" placeholder="Name" required>
+  <input type="email" id="email" placeholder="Email" required>
+  <input type="text" id="phone" placeholder="Phone" required>
+  <textarea id="message" placeholder="Message"></textarea>
+  <button type="submit">Submit</button>
+</form>
 
-  <!-- Register Form -->
-  <div id="registerDiv" class="container">
-    <h2>Register</h2>
-    <form id="userForm">
-      <input type="text" id="name" placeholder="Enter Name" required><br>
-      <input type="text" id="phone" placeholder="Enter Phone" required><br>
-      <input type="email" id="email" placeholder="Enter Email" required><br>
-      <input type="file" id="photo" accept="image/*" required><br>
-      <button type="submit">Register</button>
-    </form>
-  </div>
+<script>
+document.getElementById("userForm").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-  <!-- Success Div -->
-  <div id="successDiv" class="container">
-    <h2>✅ Registration Successful!</h2>
-    <p>Please verify your Gmail before login.</p>
-    <button onclick="goBack()">Back</button>
-  </div>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-
-  <script>
-    // 🔹 Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBzqaQCtUlt162eVH0tITgqJctmcY6wLm8",
-      authDomain: "my-js-c216c.firebaseapp.com",
-      projectId: "my-js-c216c",
-      storageBucket: "my-js-c216c.appspot.com",
-      messagingSenderId: "508117014838",
-      appId: "1:508117014838:web:0c2baac94e5faa19dcfb97",
-      measurementId: "G-994CYXBLE2"
-    };
-
-    // 🔹 Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const storage = firebase.storage();
-
-    // 🔹 Show Register Form
-    function showRegister() {
-      document.getElementById("firstDiv").style.display = "none";
-      document.getElementById("registerDiv").style.display = "block";
+  fetch("https://script.google.com/macros/s/AKfycbyULWioKRohfj-x5lOzqqZPJ91-cGahD5vak1LjnH4n0RHPkT2lVqjU1KqTamYTR-gU/exec", {
+    method: "POST",
+    body: JSON.stringify({
+      name: document.getElementById("name").value,
+      email: document.getElementById("email").value,
+      phone: document.getElementById("phone").value,
+      message: document.getElementById("message").value
+    }),
+    headers: {
+      "Content-Type": "application/json"
     }
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("Data saved to Google Sheet!");
+    console.log(data);
+    document.getElementById("userForm").reset(); // Form clear ho jaye
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Error saving data. Please try again.");
+  });
+});
+</script>
 
-    // 🔹 Go Back
-    function goBack() {
-      document.getElementById("successDiv").style.display = "none";
-      document.getElementById("registerDiv").style.display = "none";
-      document.getElementById("firstDiv").style.display = "block";
-    }
-
-    // 🔹 Register User
-    document.getElementById("userForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const name = document.getElementById("name").value;
-      const phone = document.getElementById("phone").value;
-      const email = document.getElementById("email").value;
-      const photo = document.getElementById("photo").files[0];
-
-      try {
-        // 1️⃣ Firebase Auth - Create account without password
-        const userCred = await auth.createUserWithEmailAndPassword(email, "default123"); // Dummy password
-
-        // 2️⃣ Send Gmail Verification
-        await userCred.user.sendEmailVerification();
-
-        // 3️⃣ Upload Photo
-        const storageRef = storage.ref("user_photos/" + userCred.user.uid);
-        await storageRef.put(photo);
-        const photoURL = await storageRef.getDownloadURL();
-
-        // 4️⃣ Save Data in Firestore
-        await db.collection("users").doc(userCred.user.uid).set({
-          name: name,
-          phone: phone,
-          email: email,
-          photo: photoURL,
-          verified: false,
-          createdAt: new Date()
-        });
-
-        // 5️⃣ Show Success Div
-        document.getElementById("registerDiv").style.display = "none";
-        document.getElementById("successDiv").style.display = "block";
-
-      } catch (error) {
-        alert("❌ Error: " + error.message);
-      }
-    });
-  </script>
 </body>
-</html>    
+</html>        
