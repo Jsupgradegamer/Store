@@ -1,85 +1,185 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Form to Google Sheet</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-color: #f0f2f5;
-    }
-    form {
-      background-color: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-      width: 300px;
-    }
-    input, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP सत्यापन</title>
+    <!-- Tailwind CSS के लिए CDN लिंक -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font 'Inter' का उपयोग -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen">
 
-<form id="userForm">
-  <h2>User Form</h2>
-  <input type="text" id="name" placeholder="Name" required>
-  <input type="email" id="email" placeholder="Email" required>
-  <input type="text" id="phone" placeholder="Phone" required>
-  <textarea id="message" placeholder="Message"></textarea>
-  <button type="submit">Submit</button>
-</form>
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm m-4">
+        <!-- मुख्य शीर्षक (main heading) -->
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">OTP सत्यापन</h1>
 
-<script>
-document.getElementById("userForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+        <!-- OTP अनुरोध और सत्यापन के लिए फॉर्म -->
+        <form id="otpForm" class="space-y-4">
+            <!-- उपयोगकर्ता नाम इनपुट -->
+            <div>
+                <label for="userName" class="block text-sm font-medium text-gray-700">नाम</label>
+                <input type="text" id="userName" name="userName" required
+                    class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            
+            <!-- उपयोगकर्ता ईमेल इनपुट -->
+            <div>
+                <label for="userEmail" class="block text-sm font-medium text-gray-700">ईमेल</label>
+                <input type="email" id="userEmail" name="userEmail" required
+                    class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
 
-  fetch("https://script.google.com/macros/s/AKfycbyyM42PQ3rgkCkGPZZTHhnXNkUmO8-FekQMs8Efcwn9W_lOhKU1aSeMFxSwc2GkshUp/exec", {
-    method: "POST",
-    body: JSON.stringify({
-      name: document.getElementById("name").value,
-      email: document.getElementById("email").value,
-      phone: document.getElementById("phone").value,
-      message: document.getElementById("message").value
-    }),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert("Data saved to Google Sheet!");
-    console.log(data);
-    document.getElementById("userForm").reset(); // Form clear ho jaye
-  })
-  .catch(err => {
-    console.error(err);
-    alert("Error saving data. Please try again.");
-  });
-});
-</script>
+            <!-- OTP प्राप्त करने के लिए बटन -->
+            <button type="button" id="getOtpBtn"
+                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                OTP प्राप्त करें
+            </button>
 
+            <!-- OTP सत्यापन अनुभाग (शुरुआत में छुपा हुआ) -->
+            <div id="otpVerificationSection" class="space-y-4 hidden">
+                <div>
+                    <label for="otpInput" class="block text-sm font-medium text-gray-700">OTP दर्ज करें</label>
+                    <input type="text" id="otpInput" name="otpInput" required
+                        class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+
+                <!-- OTP को सत्यापित करने के लिए बटन -->
+                <button type="button" id="verifyBtn"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                    सत्यापित करें
+                </button>
+            </div>
+        </form>
+
+        <!-- स्थिति संदेशों को दिखाने के लिए क्षेत्र -->
+        <div id="messageArea" class="mt-6 text-center text-sm"></div>
+    </div>
+
+    <script>
+        // सभी महत्वपूर्ण DOM तत्वों का संदर्भ प्राप्त करें
+        const getOtpBtn = document.getElementById('getOtpBtn');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const otpVerificationSection = document.getElementById('otpVerificationSection');
+        const userNameInput = document.getElementById('userName');
+        const userEmailInput = document.getElementById('userEmail');
+        const otpInput = document.getElementById('otpInput');
+        const messageArea = document.getElementById('messageArea');
+
+        // अपने Google Apps Script URL के लिए प्लेसहोल्डर
+        // इसे अपने तैनात किए गए Google Apps Script वेब ऐप के URL से बदलें
+        const GOOGLE_APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9FctCxip7zmqzEGF_QIq6LTCmveWeGfzSYvhytLJzw_w8tcTnzMk6I5BCjTdW24GL/exec';
+
+        // "OTP प्राप्त करें" बटन के लिए इवेंट श्रोता
+        getOtpBtn.addEventListener('click', async () => {
+            const name = userNameInput.value.trim();
+            const email = userEmailInput.value.trim();
+
+            // इनपुट मान्य करें
+            if (!name || !email) {
+                showMessage('कृपया नाम और ईमेल दर्ज करें।', 'text-red-600');
+                return;
+            }
+
+            showMessage('OTP भेज रहा है...', 'text-blue-600');
+            getOtpBtn.disabled = true; // एक से अधिक क्लिक को रोकने के लिए बटन को अक्षम करें
+
+            try {
+                // Apps Script को भेजने के लिए फॉर्म डेटा तैयार करें
+                const formData = new FormData();
+                formData.append('action', 'get_otp'); // स्क्रिप्ट को बताने के लिए कार्रवाई
+                formData.append('name', name);
+                formData.append('email', email);
+
+                // Google Apps Script को अनुरोध भेजें
+                const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showMessage('OTP आपके ईमेल पर भेज दिया गया है।', 'text-green-600');
+                    // OTP सत्यापन अनुभाग दिखाएं
+                    otpVerificationSection.classList.remove('hidden');
+                    getOtpBtn.classList.add('hidden');
+                } else {
+                    showMessage(result.message || 'OTP भेजने में विफल।', 'text-red-600');
+                    getOtpBtn.disabled = false; // विफलता पर बटन को पुनः सक्षम करें
+                }
+
+            } catch (error) {
+                console.error('Error fetching OTP:', error);
+                showMessage('कुछ गड़बड़ हो गई, कृपया पुनः प्रयास करें।', 'text-red-600');
+                getOtpBtn.disabled = false;
+            }
+        });
+
+        // "सत्यापित करें" बटन के लिए इवेंट श्रोता
+        verifyBtn.addEventListener('click', async () => {
+            const name = userNameInput.value.trim();
+            const email = userEmailInput.value.trim();
+            const otp = otpInput.value.trim();
+
+            // इनपुट मान्य करें
+            if (!name || !email || !otp) {
+                showMessage('कृपया नाम, ईमेल, और OTP दर्ज करें।', 'text-red-600');
+                return;
+            }
+
+            showMessage('OTP सत्यापित कर रहा है...', 'text-blue-600');
+            verifyBtn.disabled = true; // बटन को अक्षम करें
+
+            try {
+                // सत्यापन के लिए फॉर्म डेटा तैयार करें
+                const formData = new FormData();
+                formData.append('action', 'verify_otp'); // स्क्रिप्ट को सत्यापन के लिए बताने के लिए कार्रवाई
+                formData.append('name', name);
+                formData.append('email', email);
+                formData.append('otp', otp);
+
+                // सत्यापन अनुरोध भेजें
+                const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showMessage('सत्यापन सफल! आपका डेटा सहेज लिया गया है।', 'text-green-600');
+                    // सफल सत्यापन के बाद सभी इनपुट को वैकल्पिक रूप से अक्षम करें
+                    userNameInput.disabled = true;
+                    userEmailInput.disabled = true;
+                    otpInput.disabled = true;
+                    verifyBtn.disabled = true;
+                } else {
+                    showMessage(result.message || 'सत्यापन विफल। कृपया सही OTP दर्ज करें।', 'text-red-600');
+                    verifyBtn.disabled = false; // विफलता पर बटन को पुनः सक्षम करें
+                }
+
+            } catch (error) {
+                console.error('Error verifying OTP:', error);
+                showMessage('कुछ गड़बड़ हो गई, कृपया पुनः प्रयास करें।', 'text-red-600');
+                verifyBtn.disabled = false;
+            }
+        });
+
+        // संदेश प्रदर्शित करने के लिए सहायक फ़ंक्शन
+        function showMessage(message, colorClass) {
+            messageArea.textContent = message;
+            messageArea.className = `mt-6 text-center text-sm ${colorClass}`;
+        }
+    </script>
 </body>
 </html>        
