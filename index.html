@@ -5,101 +5,376 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sign In / Sign Up</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f0f23;
+      background-image: 
+        radial-gradient(circle at 25% 25%, #1a1a3e 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, #2d1b69 0%, transparent 50%);
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
     }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23ffffff" stroke-width="0.5" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+      pointer-events: none;
+      z-index: 0;
+    }
+
     .container {
-      background: #fff;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-      width: 380px;
-      transition: 0.3s;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      box-shadow: 
+        0 32px 64px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      padding: 48px;
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      z-index: 1;
     }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .logo p {
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
     .tabs {
       display: flex;
-      margin-bottom: 20px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #ddd;
+      margin-bottom: 40px;
+      background: #f1f5f9;
+      border-radius: 16px;
+      padding: 6px;
+      position: relative;
     }
+
     .tab {
       flex: 1;
-      padding: 12px;
-      cursor: pointer;
+      padding: 14px 24px;
       border: none;
-      background: #f1f1f1;
-      font-weight: 600;
+      background: transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 500;
       font-size: 15px;
-      color: #444;
-      transition: all 0.3s;
+      color: #64748b;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      z-index: 2;
     }
+
     .tab.active {
-      background: #2575fc;
-      color: #fff;
+      background: white;
+      color: #1e293b;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        0 2px 4px rgba(0, 0, 0, 0.06);
     }
-    .hidden {
-      display: none;
+
+    .tab:hover:not(.active) {
+      color: #475569;
+      background: rgba(255, 255, 255, 0.5);
     }
+
     form {
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      animation: fadeIn 0.4s ease-in-out;
+      gap: 24px;
     }
-    input {
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+
+    .form-group {
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
       font-size: 14px;
-      transition: border-color 0.3s;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 8px;
     }
-    input:focus {
-      border-color: #2575fc;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.2);
-    }
-    button {
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background: #2575fc;
-      color: #fff;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 600;
-      transition: background 0.3s, transform 0.1s;
-    }
-    button:hover {
-      background: #1b5edb;
-    }
-    button:active {
-      transform: scale(0.98);
-    }
-    .note {
-      font-size: 12px;
-      color: #666;
-      text-align: center;
-      margin-top: 10px;
-    }
+
     .profile-pic {
-      width: 80px;
-      height: 80px;
+      width: 96px;
+      height: 96px;
       border-radius: 50%;
       object-fit: cover;
-      margin: 10px auto;
-      display: block;
-      border: 2px solid #ddd;
+      border: 4px solid #e5e7eb;
+      align-self: center;
+      margin-bottom: 16px;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    .profile-pic[src]:not([src=""]) {
+      display: block;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 400;
+      color: #1f2937;
+      background: white;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      transform: translateY(-1px);
+    }
+
+    input[type="text"]::placeholder,
+    input[type="email"]::placeholder,
+    input[type="tel"]::placeholder {
+      color: #9ca3af;
+      font-weight: 400;
+    }
+
+    .file-upload {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-upload-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      background: #f9fafb;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .file-upload-label:hover {
+      border-color: #667eea;
+      background: #f0f2ff;
+      color: #667eea;
+    }
+
+    .file-upload-icon {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button[type="submit"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+    }
+
+    button[type="submit"]:active {
+      transform: translateY(0);
+    }
+
+    button[type="submit"]::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    button[type="submit"]:hover::before {
+      left: 100%;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 32px 0;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e5e7eb;
+    }
+
+    .divider span {
+      padding: 0 16px;
+      background: white;
+      font-weight: 500;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .g_id_signin {
+      margin-top: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .note {
+      text-align: center;
+      margin-top: 32px;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      color: #1e40af;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 640px) {
+      .container {
+        padding: 32px 24px;
+        margin: 16px;
+        max-width: none;
+      }
+      
+      .logo h1 {
+        font-size: 24px;
+      }
+      
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"] {
+        padding: 14px 16px;
+        font-size: 16px;
+      }
+      
+      button[type="submit"] {
+        padding: 14px 28px;
+      }
+      
+      .tabs {
+        margin-bottom: 32px;
+      }
+      
+      .tab {
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+    }
+
+    /* Animation for panel switching */
+    #panel-signin,
+    #panel-signup {
+      animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Loading animation */
+    .loading {
+      position: relative;
+      pointer-events: none;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin: -10px 0 0 -10px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
   <!-- Google Identity Services -->
@@ -107,6 +382,11 @@
 </head>
 <body>
   <div class="container">
+    <div class="logo">
+      <h1>SecureAuth</h1>
+      <p>Professional Authentication Platform</p>
+    </div>
+    
     <div class="tabs">
       <button id="tab-signin" class="tab active" type="button">Sign In</button>
       <button id="tab-signup" class="tab" type="button">Sign Up</button>
@@ -128,9 +408,19 @@
         <input type="text" id="lastName" placeholder="Last Name" required>
         <input type="tel" id="phone" placeholder="Phone Number (10 digits)" minlength="10" maxlength="10" pattern="\d{10}" required>
         <input type="email" id="email" placeholder="Email" required>
-        <input type="file" id="photo" accept="image/*">
+        <div class="file-upload">
+          <input type="file" id="photo" accept="image/*">
+          <label for="photo" class="file-upload-label">
+            <span class="file-upload-icon">📷</span>
+            Choose Profile Photo
+          </label>
+        </div>
         <button type="submit">Register</button>
       </form>
+
+      <div class="divider">
+        <span>or continue with</span>
+      </div>
 
       <!-- Google Sign Up -->
       <div id="g_id_onload"
@@ -153,60 +443,49 @@
   </div>
 
   <script>
-    const tabSignin = document.getElementById('tab-signin');
-    const tabSignup = document.getElementById('tab-signup');
-    const panelSignin = document.getElementById('panel-signin');
-    const panelSignup = document.getElementById('panel-signup');
-
-    // Toggle tabs
-    tabSignin.addEventListener('click', () => {
-      tabSignin.classList.add('active');
-      tabSignup.classList.remove('active');
-      panelSignin.classList.remove('hidden');
-      panelSignup.classList.add('hidden');
+    // Tab switching functionality
+    document.getElementById('tab-signin').addEventListener('click', function() {
+      document.getElementById('tab-signin').classList.add('active');
+      document.getElementById('tab-signup').classList.remove('active');
+      document.getElementById('panel-signin').classList.remove('hidden');
+      document.getElementById('panel-signup').classList.add('hidden');
     });
 
-    tabSignup.addEventListener('click', () => {
-      tabSignup.classList.add('active');
-      tabSignin.classList.remove('active');
-      panelSignup.classList.remove('hidden');
-      panelSignin.classList.add('hidden');
+    document.getElementById('tab-signup').addEventListener('click', function() {
+      document.getElementById('tab-signup').classList.add('active');
+      document.getElementById('tab-signin').classList.remove('active');
+      document.getElementById('panel-signup').classList.remove('hidden');
+      document.getElementById('panel-signin').classList.add('hidden');
     });
 
-    // Sign In
-    document.getElementById('form-signin').addEventListener('submit', e => {
+    // Photo upload preview
+    document.getElementById('photo').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('avatar').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Form submissions (demo functionality)
+    document.getElementById('form-signin').addEventListener('submit', function(e) {
       e.preventDefault();
-      const uid = document.getElementById('uid').value.trim();
-      console.log("Sign In Payload:", { uid });
-      alert("UID captured: " + uid);
+      alert('Sign In functionality would be implemented here!');
     });
 
-    // Sign Up
-    document.getElementById('form-signup').addEventListener('submit', e => {
+    document.getElementById('form-signup').addEventListener('submit', function(e) {
       e.preventDefault();
-      const firstName = document.getElementById('firstName').value.trim();
-      const lastName = document.getElementById('lastName').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const email = document.getElementById('email').value.trim();
-      console.log("Sign Up Payload:", { firstName, lastName, phone, email });
-      alert("Registration data captured (check console)");
+      alert('Registration functionality would be implemented here!');
     });
 
     // Google Sign-In callback
     function handleCredentialResponse(response) {
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      console.log("Google User:", payload);
-
-      // Autofill
-      document.getElementById('firstName').value = payload.name?.split(" ")[0] || "";
-      document.getElementById('lastName').value = payload.name?.split(" ").slice(1).join(" ") || "";
-      document.getElementById('email').value = payload.email || "";
-      if(payload.picture){
-        document.getElementById('avatar').src = payload.picture;
-      }
-      window.googleUserTemp = payload;
+      console.log("Encoded JWT ID token: " + response.credential);
+      alert('Google Sign-In successful! Token received.');
     }
-    window.handleCredentialResponse = handleCredentialResponse;
   </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9753c03750cfa731',t:'MTc1NjIxNTczMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
