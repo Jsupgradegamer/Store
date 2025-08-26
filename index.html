@@ -97,12 +97,38 @@
       display: block;
       border: 2px solid #ddd;
     }
+    .error {
+      color: red;
+      font-size: 12px;
+      margin-top: -10px;
+      margin-bottom: 5px;
+    }
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #fff;
+      color: #444;
+      font-weight: 600;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .google-btn img {
+      width: 20px;
+      height: 20px;
+    }
+    .google-btn:hover {
+      background: #f7f7f7;
+    }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -112,7 +138,7 @@
       <button id="tab-signup" class="tab" type="button">Sign Up</button>
     </div>
 
-    <!-- Sign In Panel -->
+    <!-- Sign In -->
     <div id="panel-signin">
       <form id="form-signin">
         <input type="text" id="uid" placeholder="Enter UID" required>
@@ -120,32 +146,32 @@
       </form>
     </div>
 
-    <!-- Sign Up Panel -->
+    <!-- Sign Up -->
     <div id="panel-signup" class="hidden">
       <form id="form-signup">
-        <img id="avatar" class="profile-pic" src="" alt="Profile Picture" />
+        <img id="avatar" class="profile-pic" src="https://www.w3schools.com/w3images/avatar2.png" alt="Profile Picture" />
         <input type="text" id="firstName" placeholder="First Name" required>
         <input type="text" id="lastName" placeholder="Last Name" required>
         <input type="tel" id="phone" placeholder="Phone Number (10 digits)" minlength="10" maxlength="10" pattern="\d{10}" required>
+        <div id="phone-error" class="error hidden">Phone number must be 10 digits</div>
         <input type="email" id="email" placeholder="Email" required>
         <input type="file" id="photo" accept="image/*">
         <button type="submit">Register</button>
       </form>
 
       <!-- Google Sign Up -->
-      <div id="g_id_onload"
+      <div style="margin-top:10px; text-align:center;">
+        <div id="g_id_onload"
           data-client_id="705482215484-kl0vro5evrhissbe9vrl90s0gfjd8bm5.apps.googleusercontent.com"
           data-context="signup"
           data-ux_mode="popup"
           data-callback="handleCredentialResponse"
           data-auto_select="true">
-      </div>
-      <div class="g_id_signin"
-          data-type="standard"
-          data-shape="rectangular"
-          data-theme="outline"
-          data-text="signup_with"
-          data-size="large">
+        </div>
+        <div class="google-btn" id="googleBtn">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+          <span>Sign up with Google</span>
+        </div>
       </div>
     </div>
 
@@ -158,7 +184,6 @@
     const panelSignin = document.getElementById('panel-signin');
     const panelSignup = document.getElementById('panel-signup');
 
-    // Toggle tabs
     tabSignin.addEventListener('click', () => {
       tabSignin.classList.add('active');
       tabSignup.classList.remove('active');
@@ -184,9 +209,15 @@
     // Sign Up
     document.getElementById('form-signup').addEventListener('submit', e => {
       e.preventDefault();
+      const phone = document.getElementById('phone').value.trim();
+      if (!/^\d{10}$/.test(phone)) {
+        document.getElementById('phone-error').classList.remove('hidden');
+        return;
+      } else {
+        document.getElementById('phone-error').classList.add('hidden');
+      }
       const firstName = document.getElementById('firstName').value.trim();
       const lastName = document.getElementById('lastName').value.trim();
-      const phone = document.getElementById('phone').value.trim();
       const email = document.getElementById('email').value.trim();
       console.log("Sign Up Payload:", { firstName, lastName, phone, email });
       alert("Registration data captured (check console)");
@@ -197,16 +228,21 @@
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
       console.log("Google User:", payload);
 
-      // Autofill
       document.getElementById('firstName').value = payload.name?.split(" ")[0] || "";
       document.getElementById('lastName').value = payload.name?.split(" ").slice(1).join(" ") || "";
       document.getElementById('email').value = payload.email || "";
-      if(payload.picture){
+      if (payload.picture) {
         document.getElementById('avatar').src = payload.picture;
       }
       window.googleUserTemp = payload;
     }
     window.handleCredentialResponse = handleCredentialResponse;
+
+    // Google button trigger
+    document.getElementById('googleBtn').addEventListener('click', () => {
+      const btn = document.querySelector('.g_id_signin');
+      if (btn) btn.click();
+    });
   </script>
 </body>
 </html>
