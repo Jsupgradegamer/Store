@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Auth Page</title>
+  <title>Sign In / Sign Up</title>
   <style>
     body {
       font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -16,11 +16,11 @@
     }
     .container {
       background: #fff;
-      padding: 32px;
+      padding: 30px;
       border-radius: 16px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
       width: 380px;
-      animation: fadeIn 0.5s ease;
+      transition: 0.3s;
     }
     .tabs {
       display: flex;
@@ -41,10 +41,12 @@
       transition: all 0.3s;
     }
     .tab.active {
-      background: #667eea;
+      background: #2575fc;
       color: #fff;
     }
-    .hidden { display: none; }
+    .hidden {
+      display: none;
+    }
     form {
       display: flex;
       flex-direction: column;
@@ -59,23 +61,33 @@
       transition: border-color 0.3s;
     }
     input:focus {
-      border-color: #667eea;
+      border-color: #2575fc;
       outline: none;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+      box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.2);
     }
     button {
       padding: 12px;
       border: none;
       border-radius: 8px;
-      background: #667eea;
+      background: #2575fc;
       color: #fff;
       cursor: pointer;
       font-size: 15px;
       font-weight: 600;
       transition: background 0.3s, transform 0.1s;
     }
-    button:hover { background: #5468d4; }
-    button:active { transform: scale(0.98); }
+    button:hover {
+      background: #1b5edb;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    .note {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      margin-top: 10px;
+    }
     .profile-pic {
       width: 80px;
       height: 80px;
@@ -85,38 +97,12 @@
       display: block;
       border: 2px solid #ddd;
     }
-    .google-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      color: #444;
-      background: #fff;
-      transition: background 0.3s;
-    }
-    .google-btn:hover {
-      background: #f7f7f7;
-    }
-    .google-btn img {
-      width: 20px;
-      height: 20px;
-    }
-    .note {
-      font-size: 12px;
-      color: #666;
-      text-align: center;
-      margin-top: 10px;
-    }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
+  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -126,7 +112,7 @@
       <button id="tab-signup" class="tab" type="button">Sign Up</button>
     </div>
 
-    <!-- Sign In -->
+    <!-- Sign In Panel -->
     <div id="panel-signin">
       <form id="form-signin">
         <input type="text" id="uid" placeholder="Enter UID" required>
@@ -134,10 +120,10 @@
       </form>
     </div>
 
-    <!-- Sign Up -->
+    <!-- Sign Up Panel -->
     <div id="panel-signup" class="hidden">
       <form id="form-signup">
-        <img id="avatar" class="profile-pic" src="https://www.w3schools.com/howto/img_avatar.png" alt="Profile Picture" />
+        <img id="avatar" class="profile-pic" src="" alt="Profile Picture" />
         <input type="text" id="firstName" placeholder="First Name" required>
         <input type="text" id="lastName" placeholder="Last Name" required>
         <input type="tel" id="phone" placeholder="Phone Number (10 digits)" minlength="10" maxlength="10" pattern="\d{10}" required>
@@ -146,14 +132,24 @@
         <button type="submit">Register</button>
       </form>
 
-      <!-- Custom Google Button -->
-      <div id="googleBtn" class="google-btn">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-        <span>Sign up with Google</span>
+      <!-- Google Sign Up -->
+      <div id="g_id_onload"
+          data-client_id="705482215484-kl0vro5evrhissbe9vrl90s0gfjd8bm5.apps.googleusercontent.com"
+          data-context="signup"
+          data-ux_mode="popup"
+          data-callback="handleCredentialResponse"
+          data-auto_select="true">
+      </div>
+      <div class="g_id_signin"
+          data-type="standard"
+          data-shape="rectangular"
+          data-theme="outline"
+          data-text="signup_with"
+          data-size="large">
       </div>
     </div>
 
-    <div class="note">A demo auth page with professional UI.</div>
+    <div class="note">Google Sign-In integrated with your Client ID.</div>
   </div>
 
   <script>
@@ -169,6 +165,7 @@
       panelSignin.classList.remove('hidden');
       panelSignup.classList.add('hidden');
     });
+
     tabSignup.addEventListener('click', () => {
       tabSignup.classList.add('active');
       tabSignin.classList.remove('active');
@@ -195,27 +192,19 @@
       alert("Registration data captured (check console)");
     });
 
-    // Google popup init on button click
-    document.getElementById('googleBtn').addEventListener('click', () => {
-      google.accounts.id.initialize({
-        client_id: "705482215484-kl0vro5evrhissbe9vrl90s0gfjd8bm5.apps.googleusercontent.com",
-        callback: handleCredentialResponse
-      });
-      google.accounts.id.prompt(); // <-- popup trigger
-    });
-
+    // Google Sign-In callback
     function handleCredentialResponse(response) {
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
       console.log("Google User:", payload);
 
-      // Autofill form
+      // Autofill
       document.getElementById('firstName').value = payload.name?.split(" ")[0] || "";
       document.getElementById('lastName').value = payload.name?.split(" ").slice(1).join(" ") || "";
       document.getElementById('email').value = payload.email || "";
       if(payload.picture){
         document.getElementById('avatar').src = payload.picture;
       }
-      window.googleUserTemp = payload; // temporary store
+      window.googleUserTemp = payload;
     }
     window.handleCredentialResponse = handleCredentialResponse;
   </script>
