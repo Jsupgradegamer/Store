@@ -1,94 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sign Up with Google + Metadata</title>
-<style>
-  body { font-family: Arial; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f0f0;}
-  .container { background:#fff; padding:25px; border-radius:12px; width:400px; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
-  input, button { width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc; }
-  button { background:#2575fc; color:#fff; border:none; cursor:pointer; }
-  img.profile-pic { width:80px; height:80px; border-radius:50%; display:block; margin:10px auto; border:1px solid #ddd;}
-</style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign In / Sign Up</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      width: 380px;
+      transition: 0.3s;
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #ddd;
+    }
+    .tab {
+      flex: 1;
+      padding: 12px;
+      cursor: pointer;
+      border: none;
+      background: #f1f1f1;
+      font-weight: 600;
+      font-size: 15px;
+      color: #444;
+      transition: all 0.3s;
+    }
+    .tab.active {
+      background: #2575fc;
+      color: #fff;
+    }
+    .hidden {
+      display: none;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+    input {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      border-color: #2575fc;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.2);
+    }
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #2575fc;
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: background 0.3s, transform 0.1s;
+    }
+    button:hover {
+      background: #1b5edb;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    .note {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .profile-pic {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 10px auto;
+      display: block;
+      border: 2px solid #ddd;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-<div class="container">
-  <h3>Sign Up</h3>
-  <form id="form-signup">
-    <img id="avatar" class="profile-pic" src="" alt="Profile Picture">
-    <input type="text" id="firstName" placeholder="First Name" required>
-    <input type="text" id="lastName" placeholder="Last Name" required>
-    <input type="tel" id="phone" placeholder="Phone Number" required>
-    <input type="text" id="address" placeholder="Address" required>
-    <input type="email" id="email" placeholder="Email" required>
-    <button type="submit">Register</button>
-  </form>
+  <div class="container">
+    <div class="tabs">
+      <button id="tab-signin" class="tab active" type="button">Sign In</button>
+      <button id="tab-signup" class="tab" type="button">Sign Up</button>
+    </div>
 
-  <!-- Google Sign-In -->
-  <div id="g_id_onload"
-       data-client_id="YOUR_CLIENT_ID.apps.googleusercontent.com"
-       data-context="signup"
-       data-ux_mode="popup"
-       data-callback="handleCredentialResponse"
-       data-auto_select="true">
+    <!-- Sign In Panel -->
+    <div id="panel-signin">
+      <form id="form-signin">
+        <input type="text" id="uid" placeholder="Enter UID" required>
+        <button type="submit">Sign In</button>
+      </form>
+    </div>
+
+    <!-- Sign Up Panel -->
+    <div id="panel-signup" class="hidden">
+      <form id="form-signup">
+        <img id="avatar" class="profile-pic" src="" alt="Profile Picture" />
+        <input type="text" id="firstName" placeholder="First Name" required>
+        <input type="text" id="lastName" placeholder="Last Name" required>
+        <input type="tel" id="phone" placeholder="Phone Number (10 digits)" minlength="10" maxlength="10" pattern="\d{10}" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="file" id="photo" accept="image/*">
+        <button type="submit">Register</button>
+      </form>
+
+      <!-- Google Sign Up -->
+      <div id="g_id_onload"
+          data-client_id="705482215484-kl0vro5evrhissbe9vrl90s0gfjd8bm5.apps.googleusercontent.com"
+          data-context="signup"
+          data-ux_mode="popup"
+          data-callback="handleCredentialResponse"
+          data-auto_select="true">
+      </div>
+      <div class="g_id_signin"
+          data-type="standard"
+          data-shape="rectangular"
+          data-theme="outline"
+          data-text="signup_with"
+          data-size="large">
+      </div>
+    </div>
+
+    <div class="note">Google Sign-In integrated with your Client ID.</div>
   </div>
-  <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-text="signup_with" data-size="large"></div>
-</div>
 
-<script>
-  // Device info
-  function getDeviceInfo() {
-    return { userAgent: navigator.userAgent, platform: navigator.platform, language: navigator.language };
-  }
-  function getDateTime() { return new Date().toISOString(); }
-  async function getUserIP() {
-    try { const res = await fetch('https://api.ipify.org?format=json'); const data = await res.json(); return data.ip; } 
-    catch(e){ return 'Unknown'; }
-  }
+  <script>
+    const tabSignin = document.getElementById('tab-signin');
+    const tabSignup = document.getElementById('tab-signup');
+    const panelSignin = document.getElementById('panel-signin');
+    const panelSignup = document.getElementById('panel-signup');
 
-  // Google Sign-In callback
-  async function handleCredentialResponse(response){
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    console.log("Google User:", payload);
+    // Toggle tabs
+    tabSignin.addEventListener('click', () => {
+      tabSignin.classList.add('active');
+      tabSignup.classList.remove('active');
+      panelSignin.classList.remove('hidden');
+      panelSignup.classList.add('hidden');
+    });
 
-    // Autofill form
-    document.getElementById('firstName').value = payload.name?.split(" ")[0] || "";
-    document.getElementById('lastName').value = payload.name?.split(" ").slice(1).join(" ") || "";
-    document.getElementById('email').value = payload.email || "";
-    if(payload.picture){ document.getElementById('avatar').src = payload.picture; }
-    window.googleUserTemp = payload;
-  }
-  window.handleCredentialResponse = handleCredentialResponse;
+    tabSignup.addEventListener('click', () => {
+      tabSignup.classList.add('active');
+      tabSignin.classList.remove('active');
+      panelSignup.classList.remove('hidden');
+      panelSignin.classList.add('hidden');
+    });
 
-  // Form submit
-  document.getElementById('form-signup').addEventListener('submit', async e=>{
-    e.preventDefault();
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const address = document.getElementById('address').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const avatar = document.getElementById('avatar').src;
+    // Sign In
+    document.getElementById('form-signin').addEventListener('submit', e => {
+      e.preventDefault();
+      const uid = document.getElementById('uid').value.trim();
+      console.log("Sign In Payload:", { uid });
+      alert("UID captured: " + uid);
+    });
 
-    const deviceInfo = getDeviceInfo();
-    const dateTime = getDateTime();
-    const ip = await getUserIP();
-    const modalName = navigator.userAgentData?.brands?.map(b=>b.brand).join(",") || "Unknown";
+    // Sign Up
+    document.getElementById('form-signup').addEventListener('submit', e => {
+      e.preventDefault();
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      console.log("Sign Up Payload:", { firstName, lastName, phone, email });
+      alert("Registration data captured (check console)");
+    });
 
-    const payload = { firstName, lastName, phone, address, email, avatar, deviceInfo, ip, dateTime, modalName };
-    console.log("Payload to save.servlet:", payload);
+    // Google Sign-In callback
+    function handleCredentialResponse(response) {
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      console.log("Google User:", payload);
 
-    fetch('/save.servlet', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(res => res.text())
-    .then(resp=>{ alert("Saved successfully!"); console.log(resp); })
-    .catch(err=>{ alert("Error saving data"); console.error(err); });
-  });
-</script>
+      // Autofill
+      document.getElementById('firstName').value = payload.name?.split(" ")[0] || "";
+      document.getElementById('lastName').value = payload.name?.split(" ").slice(1).join(" ") || "";
+      document.getElementById('email').value = payload.email || "";
+      if(payload.picture){
+        document.getElementById('avatar').src = payload.picture;
+      }
+      window.googleUserTemp = payload;
+    }
+    window.handleCredentialResponse = handleCredentialResponse;
+  </script>
 </body>
 </html>
