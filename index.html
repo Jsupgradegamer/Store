@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sign In / Sign Up</title>
+  <title>Auth Page</title>
   <style>
     body {
       font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      background: linear-gradient(135deg, #667eea, #764ba2);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -16,11 +16,11 @@
     }
     .container {
       background: #fff;
-      padding: 30px;
+      padding: 32px;
       border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
       width: 380px;
-      transition: 0.3s;
+      animation: fadeIn 0.5s ease;
     }
     .tabs {
       display: flex;
@@ -41,12 +41,10 @@
       transition: all 0.3s;
     }
     .tab.active {
-      background: #2575fc;
+      background: #667eea;
       color: #fff;
     }
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
     form {
       display: flex;
       flex-direction: column;
@@ -61,33 +59,23 @@
       transition: border-color 0.3s;
     }
     input:focus {
-      border-color: #2575fc;
+      border-color: #667eea;
       outline: none;
-      box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.2);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
     }
     button {
       padding: 12px;
       border: none;
       border-radius: 8px;
-      background: #2575fc;
+      background: #667eea;
       color: #fff;
       cursor: pointer;
       font-size: 15px;
       font-weight: 600;
       transition: background 0.3s, transform 0.1s;
     }
-    button:hover {
-      background: #1b5edb;
-    }
-    button:active {
-      transform: scale(0.98);
-    }
-    .note {
-      font-size: 12px;
-      color: #666;
-      text-align: center;
-      margin-top: 10px;
-    }
+    button:hover { background: #5468d4; }
+    button:active { transform: scale(0.98); }
     .profile-pic {
       width: 80px;
       height: 80px;
@@ -97,32 +85,32 @@
       display: block;
       border: 2px solid #ddd;
     }
-    .error {
-      color: red;
-      font-size: 12px;
-      margin-top: -10px;
-      margin-bottom: 5px;
-    }
     .google-btn {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      background: #fff;
-      color: #444;
-      font-weight: 600;
       border: 1px solid #ccc;
       border-radius: 8px;
       padding: 10px;
       cursor: pointer;
+      font-weight: 600;
+      color: #444;
+      background: #fff;
       transition: background 0.3s;
+    }
+    .google-btn:hover {
+      background: #f7f7f7;
     }
     .google-btn img {
       width: 20px;
       height: 20px;
     }
-    .google-btn:hover {
-      background: #f7f7f7;
+    .note {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      margin-top: 10px;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -149,33 +137,23 @@
     <!-- Sign Up -->
     <div id="panel-signup" class="hidden">
       <form id="form-signup">
-        <img id="avatar" class="profile-pic" src="https://www.w3schools.com/w3images/avatar2.png" alt="Profile Picture" />
+        <img id="avatar" class="profile-pic" src="https://www.w3schools.com/howto/img_avatar.png" alt="Profile Picture" />
         <input type="text" id="firstName" placeholder="First Name" required>
         <input type="text" id="lastName" placeholder="Last Name" required>
         <input type="tel" id="phone" placeholder="Phone Number (10 digits)" minlength="10" maxlength="10" pattern="\d{10}" required>
-        <div id="phone-error" class="error hidden">Phone number must be 10 digits</div>
         <input type="email" id="email" placeholder="Email" required>
         <input type="file" id="photo" accept="image/*">
         <button type="submit">Register</button>
       </form>
 
-      <!-- Google Sign Up -->
-      <div style="margin-top:10px; text-align:center;">
-        <div id="g_id_onload"
-          data-client_id="705482215484-kl0vro5evrhissbe9vrl90s0gfjd8bm5.apps.googleusercontent.com"
-          data-context="signup"
-          data-ux_mode="popup"
-          data-callback="handleCredentialResponse"
-          data-auto_select="true">
-        </div>
-        <div class="google-btn" id="googleBtn">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
-          <span>Sign up with Google</span>
-        </div>
+      <!-- Custom Google Button -->
+      <div id="googleBtn" class="google-btn">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+        <span>Sign up with Google</span>
       </div>
     </div>
 
-    <div class="note">Google Sign-In integrated with your Client ID.</div>
+    <div class="note">A demo auth page with professional UI.</div>
   </div>
 
   <script>
@@ -184,13 +162,13 @@
     const panelSignin = document.getElementById('panel-signin');
     const panelSignup = document.getElementById('panel-signup');
 
+    // Toggle tabs
     tabSignin.addEventListener('click', () => {
       tabSignin.classList.add('active');
       tabSignup.classList.remove('active');
       panelSignin.classList.remove('hidden');
       panelSignup.classList.add('hidden');
     });
-
     tabSignup.addEventListener('click', () => {
       tabSignup.classList.add('active');
       tabSignin.classList.remove('active');
@@ -209,40 +187,37 @@
     // Sign Up
     document.getElementById('form-signup').addEventListener('submit', e => {
       e.preventDefault();
-      const phone = document.getElementById('phone').value.trim();
-      if (!/^\d{10}$/.test(phone)) {
-        document.getElementById('phone-error').classList.remove('hidden');
-        return;
-      } else {
-        document.getElementById('phone-error').classList.add('hidden');
-      }
       const firstName = document.getElementById('firstName').value.trim();
       const lastName = document.getElementById('lastName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
       const email = document.getElementById('email').value.trim();
       console.log("Sign Up Payload:", { firstName, lastName, phone, email });
       alert("Registration data captured (check console)");
     });
 
-    // Google Sign-In callback
+    // Google popup init on button click
+    document.getElementById('googleBtn').addEventListener('click', () => {
+      google.accounts.id.initialize({
+        client_id: "705482215484-kl0vro5evrhissbe9vrl90s0gfjd8bm5.apps.googleusercontent.com",
+        callback: handleCredentialResponse
+      });
+      google.accounts.id.prompt(); // <-- popup trigger
+    });
+
     function handleCredentialResponse(response) {
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
       console.log("Google User:", payload);
 
+      // Autofill form
       document.getElementById('firstName').value = payload.name?.split(" ")[0] || "";
       document.getElementById('lastName').value = payload.name?.split(" ").slice(1).join(" ") || "";
       document.getElementById('email').value = payload.email || "";
-      if (payload.picture) {
+      if(payload.picture){
         document.getElementById('avatar').src = payload.picture;
       }
-      window.googleUserTemp = payload;
+      window.googleUserTemp = payload; // temporary store
     }
     window.handleCredentialResponse = handleCredentialResponse;
-
-    // Google button trigger
-    document.getElementById('googleBtn').addEventListener('click', () => {
-      const btn = document.querySelector('.g_id_signin');
-      if (btn) btn.click();
-    });
   </script>
 </body>
 </html>
